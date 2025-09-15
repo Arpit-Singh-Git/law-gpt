@@ -1,8 +1,8 @@
 import streamlit as st
-import requests
+from openai import OpenAI
 
-# 🔐 Embedded NVIDIA API Key (replace with your actual key)
-NVIDIA_API_KEY = "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"
+# NVIDIA API Key (replace with your actual key)
+NVIDIA_API_KEY = "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"
 
 # Streamlit UI
 st.set_page_config(page_title="LawGPT - Legal Q&A", layout="centered")
@@ -54,34 +54,41 @@ if st.button("Ask"):
     else:
         # Add instructions for detail level and language
         system_prompt = f"Answer as a legal expert. Detail level: {detail_level}. Language: {language}."
-        payload = {
-            "model": "meta/llama3-70b-instruct",  # Use a known valid model name
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
-            "max_tokens": 1024,
-            "temperature": 0.2
-        }
-        headers = {
-            "Authorization": f"Bearer {NVIDIA_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=NVIDIA_API_KEY
+        )
         with st.spinner("🔍 Getting answer from NVIDIA LLM..."):
             try:
-                response = requests.post(
-                    "https://integrate.api.nvidia.com/v1/chat/completions",
-                    json=payload,
-                    headers=headers
+                # Stream the response for a more interactive UI
+                completion = client.chat.completions.create(
+                    model="nvidia/nvidia-nemotron-nano-9b-v2",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": question}
+                    ],
+                    temperature=0.6,
+                    top_p=0.95,
+                    max_tokens=2048,
+                    frequency_penalty=0,
+                    presence_penalty=0,
+                    stream=True,
+                    extra_body={
+                        "min_thinking_tokens": 1024,
+                        "max_thinking_tokens": 2048
+                    }
                 )
-                response.raise_for_status()
-                result = response.json()
-                answer = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+                answer = ""
+                answer_placeholder = st.empty()
+                for chunk in completion:
+                    reasoning = getattr(chunk.choices[0].delta, "reasoning_content", None)
+                    content = chunk.choices[0].delta.content
+                    if reasoning:
+                        answer += reasoning
+                    if content:
+                        answer += content
+                    answer_placeholder.markdown(f"<div class='big-font'>{answer}</div>", unsafe_allow_html=True)
                 st.success("✅ Response:")
-                st.markdown(f"<div class='big-font'>{answer}</div>", unsafe_allow_html=True)
                 st.code(answer, language="markdown")
-            except requests.exceptions.RequestException as e:
+            except Exception as e:
                 st.error(f"❌ Error communicating with NVIDIA API: {str(e)}")
-
-
-
