@@ -1,6 +1,10 @@
 import streamlit as st
 from openai import OpenAI
 
+# Ensure session state for question
+if 'question' not in st.session_state:
+    st.session_state['question'] = ''
+
 # NVIDIA API Key (replace with your actual key)
 NVIDIA_API_KEY = "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"
 
@@ -52,7 +56,6 @@ if st.button("Ask"):
     if not question.strip():
         st.warning("⚠️ Please enter a legal question before submitting.")
     else:
-        # Add instructions for detail level and language
         system_prompt = f"Answer as a legal expert. Detail level: {detail_level}. Language: {language}."
         client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
@@ -60,7 +63,6 @@ if st.button("Ask"):
         )
         with st.spinner("🔍 Getting answer from NVIDIA LLM..."):
             try:
-                # Stream the response for a more interactive UI
                 completion = client.chat.completions.create(
                     model="nvidia/nvidia-nemotron-nano-9b-v2",
                     messages=[
