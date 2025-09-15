@@ -55,11 +55,13 @@ if st.button("Ask"):
         # Add instructions for detail level and language
         system_prompt = f"Answer as a legal expert. Detail level: {detail_level}. Language: {language}."
         payload = {
-            "model": "nvidia/llama3-chatqa-1.5-70b",
+            "model": "meta/llama3-70b-instruct",  # Use a known valid model name
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
-            ]
+            ],
+            "max_tokens": 1024,
+            "temperature": 0.2
         }
         headers = {
             "Authorization": f"Bearer {NVIDIA_API_KEY}",
@@ -77,7 +79,6 @@ if st.button("Ask"):
                 answer = result.get("choices", [{}])[0].get("message", {}).get("content", "")
                 st.success("✅ Response:")
                 st.markdown(f"<div class='big-font'>{answer}</div>", unsafe_allow_html=True)
-                # Option to copy answer
                 st.code(answer, language="markdown")
             except requests.exceptions.RequestException as e:
                 st.error(f"❌ Error communicating with NVIDIA API: {str(e)}")
