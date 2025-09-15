@@ -70,7 +70,7 @@ if st.button("Ask"):
         with st.spinner("🔍 Getting answer from NVIDIA LLM..."):
             try:
                 response = requests.post(
-                    "https://integrate.api.nvidia.com/v1/llm/chat/completions",
+                    "https://integrate.api.nvidia.com/v1/chat/completions",
                     json=payload,
                     headers=headers
                 )
@@ -82,5 +82,6 @@ if st.button("Ask"):
                 st.code(answer, language="markdown")
             except requests.exceptions.RequestException as e:
                 st.error(f"❌ Error communicating with NVIDIA API: {str(e)}")
+
 
 
