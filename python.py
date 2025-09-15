@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 # 🔐 Embedded NVIDIA API Key (replace with your actual key)
-NVIDIA_API_KEY = "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"
+NVIDIA_API_KEY = "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"
 
 # Streamlit UI
 st.set_page_config(page_title="LawGPT - Legal Q&A", layout="centered")
@@ -82,3 +82,4 @@ if st.button("Ask"):
                 st.code(answer, language="markdown")
             except requests.exceptions.RequestException as e:
                 st.error(f"❌ Error communicating with NVIDIA API: {str(e)}")
+
